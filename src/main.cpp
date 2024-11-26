@@ -1,77 +1,53 @@
 // New feature! Overclocking WS2812
 // #define FASTLED_OVERCLOCK 1.2 // 20% overclock ~ 960 khz.
 #include <FastLED.h>
-#define NUM_LEDS 32
-#define DATA_PIN 8
-#define DATA_PIN2 9
-#define BRIGHTNESS 255
+#define NUM_LEDS_PER_WHEEL 40 * 2
 
-CRGB leds[NUM_LEDS];
-CRGB leds2[NUM_LEDS];
+const int TOTAL_LEDS = NUM_LEDS_PER_WHEEL * NUM_LEDS_PER_WHEEL;
 
-int inPin = A0; 
-void setup() {
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-    FastLED.addLeds<NEOPIXEL, DATA_PIN2>(leds2, NUM_LEDS);
-    pinMode(inPin, INPUT);
-    Serial.begin(115200);
-    FastLED.setBrightness(BRIGHTNESS);
-}
+CRGB grid[TOTAL_LEDS];
 
-int pos = 0;
-int dot = 0;
-bool latch = false;
-void loop() {
-    float outputV = analogRead(inPin) * 5000.0 / 1023;
-    // Serial.print("Output Voltaje = ");
-    // Serial.print(outputV);
-    // Serial.print(" mV   \n");
+CRGB get_grid_colour(int x, int y) {
+    int pos_1d = get_1d_arr_index(x, y);
 
-    if (outputV > 3250 && latch == false) {
-        pos++;
-        if (pos > 1) pos = 0;
-        latch = true;
-    } else if (outputV < 3220) {
-        latch = false;
+    // this shouldn't happen
+    if (pos_1d > NUM_LEDS_PER_WHEEL) {
+        return CRGB::Red;
     }
 
-    // if (pos == 0) {
-        for(int led = 0; led < NUM_LEDS; led++) { 
-            leds[led] = CRGB::Black;
-            leds2[led] = CRGB::Black;
-        }
-        leds[dot] = CRGB::Red;
-        leds2[dot] = CRGB::Red;
-        FastLED.show();
-        delay(50);
-
-        if (dot > NUM_LEDS) dot = 0;
-        dot++;
-
-        // for(int led = 0; led < NUM_LEDS; led++) { 
-        //     leds[led] = CRGB::Red;
-        //     leds2[led] = CRGB::Red;
-        //     FastLED.show();
-        //     delay(50);
-        // }
-
-    // } else if (pos == 1) {
-    //     for(int led = 0; led < NUM_LEDS; led++) { 
-    //         leds[led] = CRGB::Blue;
-    //         leds2[led] = CRGB::Blue;
-    //         FastLED.show();
-    //     }
-    // }
-    // } else if (pos == 2) {
-    //     for(int led = 0; led < NUM_LEDS; led++) { 
-    //         leds[led] = CRGB::Green;
-    //     }
-    //     FastLED.show();
-
-    // } else {
-    //     for(int led = 0; led < NUM_LEDS; led++) { 
-    //         leds[led] = CRGB::Red;
-    //     }
-    //     FastLED.show();
-    // }
+    return grid[pos_1d];
 }
+
+void set_grid_colour(int x, int y, CRGB colour) {
+    int pos_1d = get_1d_arr_index(x, y);
+    grid[pos_1d] = colour;
+}
+
+int get_1d_arr_index(int x, int y) {
+    // map the x,y coords to positive array indices
+    int x_translated = x + NUM_LEDS_PER_WHEEL / 2;
+    int y_translated = y + NUM_LEDS_PER_WHEEL / 2;
+
+    // flip y coord so the image isn't upside down
+    y_translated = NUM_LEDS_PER_WHEEL - y_translated;
+
+    return (y_translated * NUM_LEDS_PER_WHEEL) + x_translated;
+}
+
+void setup_pizza_slices() {
+    for (int i = (-NUM_LEDS_PER_WHEEL / 2); i < NUM_LEDS_PER_WHEEL / 2; i++) {
+        for (int j = NUM_LEDS_PER_WHEEL / 2; j < -NUM_LEDS_PER_WHEEL / 2; j--) {
+            if (i < 0 && j > 0) {
+                set_grid_colour(i, j, CRGB::Green);
+            } else if (i > 0 && j > 0) {
+                set_grid_colour(i, j, CRGB::Blue);
+            } else if (i < 0 && j < 0) {
+                set_grid_colour(i, j, CRGB::Red);
+            } else if (i > 0 && j < 0) {
+                set_grid_colour(i, j, CRGB::White);
+            }
+        }
+    }
+}
+
+setup_pizza_slices();
