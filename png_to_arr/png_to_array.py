@@ -17,10 +17,16 @@ def to_array(path):
 
     print("{", end="")
     for p in arduino_array:
+        # print(p)
         if p == (0, 0, 0):
             print(f"0", end=",")
-        else:
+        elif p == (230, 141, 62):
             print(f"1", end=",")
+        elif p == (13, 23, 31):
+            print(f"2", end=",")
+        elif p == (66, 143, 66):
+            print(f"3", end=",")
+
     print("}", end="")
 
 if __name__ == "__main__":
