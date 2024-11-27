@@ -7,15 +7,19 @@
 #include <Math.h>
 
 #define NUM_LEDS 32
-#define DATA_PIN 8
+#define DATA_PIN_A 8
+#define DATA_PIN_B 9
 #define LED_ROW_SIZE NUM_LEDS * 2
 
 CRGB leds[NUM_LEDS];
+CRGB leds_b[NUM_LEDS];
 
 // Hall effect sensor
 #define THRESHOLD 3230
-int inPin = A0;
-bool halleffectTriggered = false;
+int inPin_halleffect0 = A0;
+int inPin_halleffect1 = A1;
+
+volatile bool halleffectTriggered = false;
 
 //Wheel speed
 volatile unsigned long lastPulseTime = 0;
@@ -25,17 +29,6 @@ volatile float currentTime = 0;
 //coords systems
 volatile float omega = 0;
 volatile float real_theta = 0;
-
-volatile float x_pos = 0;
-volatile float y_pos = 0;
-volatile float desired_theta = 0;
-
-volatile int r = 0; // radius based on x, y coords
-volatile int led_n = 0; // led based on the radius
-
-const int magnets = 1;
-const float wheelRadius = 0.26;
-const float ledsPerMeter = 144;
 
 const int TOTAL_LEDS = LED_ROW_SIZE * LED_ROW_SIZE;
 
@@ -57,10 +50,6 @@ int _get_1d_arr_index(int x, int y) {
 
 CRGB get_grid_colour(int x, int y) {
     int pos_1d = _get_1d_arr_index(x, y);
-
-    // Serial.println("Pos:");
-    // Serial.print(pos_1d);
-    // Serial.println();
 
     // this shouldn't happen
     if (pos_1d > TOTAL_LEDS) {
@@ -162,8 +151,12 @@ void iyoni() {
 }
 
 void setup() {
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-    pinMode(inPin, INPUT);
+    FastLED.addLeds<NEOPIXEL, DATA_PIN_A>(leds, NUM_LEDS);
+    FastLED.addLeds<NEOPIXEL, DATA_PIN_B>(leds_b, NUM_LEDS);
+
+    pinMode(inPin_halleffect0, INPUT);
+    pinMode(inPin_halleffect1, INPUT);
+
     Serial.begin(115200);
 
     FastLED.setBrightness(50);
@@ -173,29 +166,16 @@ void setup() {
     iyoni();
 }
 
-void ledMagic() {
-  for(int led = 0; led < NUM_LEDS; led++) {
-    int x = (led + 0) * cos(real_theta);
-    int y = (led + 0) * sin(real_theta);
+void checkHES() { //check hall effect sensor
 
-    // Serial.println("Pos:");
-    // Serial.print(x);
-    // Serial.print(", ");
-    // Serial.print(y);
-    // Serial.println();
-
-    leds[led] = get_grid_colour(x, y);
-  }
-  FastLED.show();
-}
-
-void loop() {
     volatile float timeBetweenPulses;
     volatile float timeSincePulse;
 
     //check to see if hall effect sensor has triggered, i.e. 1 rotation
-    float outputV = analogRead(inPin) * 5000.0 / 1023;
-    if (outputV > THRESHOLD && !halleffectTriggered) {
+    float outputV = analogRead(inPin_halleffect0) * 5000.0 / 1023;
+    // float outputV1 = analogRead(inPin_halleffect1) * 5000.0 / 1023;
+
+    if ( (outputV > THRESHOLD) && !halleffectTriggered) {
         lastPulseTime = currentPulseTime;
         currentPulseTime = micros();
         halleffectTriggered = true;
@@ -209,15 +189,29 @@ void loop() {
     omega =  ((2 * 3.14) / (timeBetweenPulses)) * 1000000;
     timeSincePulse = (micros() - currentPulseTime); //us
     real_theta = (omega * timeSincePulse) / 1000000;
+}
 
-    // unsigned long current_millis = millis();
-    // if (current_millis - art_timer > 1000) {
-    //     if (square_size == 0) square_inc = 1;
-    //     if (square_size > 16) square_inc = -1;
 
-    //     square_size += square_inc;
-    //     square(square_size);
-    // }
+void ledMagic() {
+  for(int led = 0; led < NUM_LEDS; led++) {
+    
+    checkHES();
+    int x = (led + 0) * cos(real_theta);
+    int y = (led + 0) * sin(real_theta);
+    leds[led] = get_grid_colour(x, y);
+
+    checkHES();
+    x = (led + 0) * cos(real_theta + 3.14);
+    y = (led + 0) * sin(real_theta + 3.14);
+    leds_b[led] = get_grid_colour(x, y);
+
+  }
+  FastLED.show();
+}
+
+void loop() {
+
+    checkHES();
 
     ledMagic();
 
