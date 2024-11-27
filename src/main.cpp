@@ -49,7 +49,7 @@ int _get_1d_arr_index(int x, int y) {
     int y_translated = y + LED_ROW_SIZE / 2;
 
     // flip y coord so the image isn't upside down
-    // y_translated = 2 * NUM_LEDS_PER_WHEEL - y_translated;
+    // y_translated = LED_ROW_SIZE - y_translated;
 
     return (y_translated * LED_ROW_SIZE) + x_translated;
 }
@@ -57,12 +57,16 @@ int _get_1d_arr_index(int x, int y) {
 CRGB get_grid_colour(int x, int y) {
     int pos_1d = _get_1d_arr_index(x, y);
 
+    // Serial.println("Pos:");
+    // Serial.print(pos_1d);
+    // Serial.println();
+
     // this shouldn't happen
     if (pos_1d > TOTAL_LEDS) {
         return CRGB::Green;
     }
 
-    return grid[0];
+    return grid[pos_1d];
 }
 
 void clear_grid(CRGB clear_colour) {
@@ -116,7 +120,7 @@ void pizza_slices() {
 int square_size = 1;
 int square_inc = 1;
 void square(int size) {
-    clear_grid(CRGB::DarkGoldenrod);
+    clear_grid(CRGB::Black);
 
     for (int i = -size; i <= size; i++) {
         for (int j = -size; j <= size; j++) {
@@ -130,14 +134,20 @@ void setup() {
     pinMode(inPin, INPUT);
     Serial.begin(115200);
 
-    // pizza_slices();
-    square(1);
+    pizza_slices();
+    // square(10);
 }
 
 void ledMagic() {
   for(int led = 0; led < NUM_LEDS; led++) {
-    int x = (led + 1) * cos(real_theta);
-    int y = (led + 1) * sin(real_theta);
+    int x = (led + 0) * cos(real_theta);
+    int y = (led + 0) * sin(real_theta);
+
+    // Serial.println("Pos:");
+    // Serial.print(x);
+    // Serial.print(", ");
+    // Serial.print(y);
+    // Serial.println();
 
     leds[led] = get_grid_colour(x, y);
   }
@@ -165,16 +175,16 @@ void loop() {
     timeSincePulse = (micros() - currentPulseTime); //us
     real_theta = (omega * timeSincePulse) / 1000000;
 
-    unsigned long current_millis = millis();
-    if (current_millis - art_timer > 200) {
-        if (square_size == 0) square_inc = 1;
-        if (square_size > LED_ROW_SIZE / 4 - 1) square_inc = -1;
+    // unsigned long current_millis = millis();
+    // if (current_millis - art_timer > 1000) {
+    //     if (square_size == 0) square_inc = 1;
+    //     if (square_size > 16) square_inc = -1;
 
-        square_size += square_inc;
-        square(square_size);
-    }
+    //     square_size += square_inc;
+    //     square(square_size);
+    // }
 
     ledMagic();
 
-    grid_debug();
+    // grid_debug();
 }
