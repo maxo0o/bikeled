@@ -45,7 +45,7 @@ def closest_colour(color):
 def to_array(path):
     img = Image.open(path).convert("RGB")
     pixels = img.load()
-    alpha = img.split()[-1].load()
+    alpha = img.convert('RGBA').split()[-1].load()
 
     for i in range(0, IMAGE_WIDTH):
         for j in range(0, IMAGE_HEIGHT):
