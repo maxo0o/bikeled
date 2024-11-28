@@ -21,12 +21,14 @@ CRGB leds_b[NUM_LEDS];
 int inPin_halleffect0 = A0;
 int inPin_halleffect1 = A1;
 
-volatile bool halleffectTriggered = false;
-
 //Wheel speed
+// volatile bool halleffectTriggered = false;
 volatile unsigned long lastPulseTime = 0;
 volatile unsigned long currentPulseTime = 0;
-volatile float currentTime = 0;
+// volatile float currentTime = 0;
+
+volatile bool he0_triggered = false;
+volatile bool he1_triggered = false;
 
 //coords systems
 volatile float omega = 0;
@@ -265,21 +267,42 @@ void checkHES() { //check hall effect sensor
     volatile float timeSincePulse;
 
     //check to see if hall effect sensor has triggered, i.e. 1 rotation
-    float outputV = analogRead(inPin_halleffect0) * 5000.0 / 1023;
-    // float outputV1 = analogRead(inPin_halleffect1) * 5000.0 / 1023;
+    float he0_outputV = analogRead(inPin_halleffect0) * 5000.0 / 1023;
+    float he1_outputV = analogRead(inPin_halleffect1) * 5000.0 / 1023;
 
-    if ( (outputV > THRESHOLD) && !halleffectTriggered) {
-        lastPulseTime = currentPulseTime;
-        currentPulseTime = micros();
-        halleffectTriggered = true;
-        currentTime = 0;
-    } else if (outputV <= THRESHOLD) {
-        halleffectTriggered = false;
+    // if ( (outputV > THRESHOLD) && !halleffectTriggered) {
+    //     lastPulseTime = currentPulseTime; // lastPulseTime is time for one revolution
+    //     currentPulseTime = micros(); // save counter value
+    //     halleffectTriggered = true;
+    //     currentTime = 0;
+    // } else if (outputV <= THRESHOLD) {
+    //     halleffectTriggered = false;
+    // }
+
+    if ( (he0_outputV > THRESHOLD) && !he0_triggered) {
+        lastPulseTime = currentPulseTime; // lastPulseTime is time for one revolution
+        currentPulseTime = micros(); // save counter value
+        he0_triggered = true;
+        he1_triggered = false;
+    } else if (he0_outputV <= THRESHOLD || he1_outputV <= THRESHOLD) {
+        he0_triggered = false;
+        he1_triggered = false;
+    }
+
+    if ( (he1_outputV > THRESHOLD) && !he1_triggered) {
+        lastPulseTime = currentPulseTime; // lastPulseTime is time for one revolution
+        currentPulseTime = micros(); // save counter value
+        he1_triggered = true;
+        he0_triggered = false;
+    } else if (he0_outputV <= THRESHOLD || he1_outputV <= THRESHOLD) {
+        he0_triggered = false;
+        he1_triggered = false;
     }
 
     //calc speed
     timeBetweenPulses = ((currentPulseTime - lastPulseTime));
-    omega =  ((2 * PI) / (timeBetweenPulses)) * 1000000;
+    // omega =  ((2 * PI) / (timeBetweenPulses)) * 1000000;
+    omega =  (( PI ) / (timeBetweenPulses)) * 1000000;
     timeSincePulse = (micros() - currentPulseTime); //us
     real_theta = (omega * timeSincePulse) / 1000000;
 }
