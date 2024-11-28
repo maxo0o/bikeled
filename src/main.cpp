@@ -11,6 +11,7 @@
 #define DATA_PIN_A 8
 #define DATA_PIN_B 9
 #define LED_ROW_SIZE (NUM_LEDS + DEAD_ZONE_LED_SIZE) * 2
+#define PI 3.14159265
 
 CRGB leds[NUM_LEDS];
 CRGB leds_b[NUM_LEDS];
@@ -254,7 +255,8 @@ void setup() {
     // canary();
     // dog(0);
     // cat();
-    load_inyoni();
+    // load_inyoni();
+    line();
 }
 
 void checkHES() { //check hall effect sensor
@@ -277,7 +279,7 @@ void checkHES() { //check hall effect sensor
 
     //calc speed
     timeBetweenPulses = ((currentPulseTime - lastPulseTime));
-    omega =  ((2 * 3.14) / (timeBetweenPulses)) * 1000000;
+    omega =  ((2 * PI) / (timeBetweenPulses)) * 1000000;
     timeSincePulse = (micros() - currentPulseTime); //us
     real_theta = (omega * timeSincePulse) / 1000000;
 }
@@ -292,8 +294,8 @@ void ledMagic() {
     leds[led] = get_grid_colour(x, y);
 
     checkHES();
-    x = (led + DEAD_ZONE_LED_SIZE - 1) * cos(real_theta + 3.14);
-    y = (led + DEAD_ZONE_LED_SIZE - 1) * sin(real_theta + 3.14);
+    x = (led + DEAD_ZONE_LED_SIZE - 1) * cos(real_theta + PI - 5.0);
+    y = (led + DEAD_ZONE_LED_SIZE - 1) * sin(real_theta + PI - 5.0);
     leds_b[led] = get_grid_colour(x, y);
 
   }
