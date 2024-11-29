@@ -3,6 +3,7 @@ import sys
 from PIL import Image
 
 IMAGE_WIDTH = 39 * 2
+# IMAGE_WIDTH = 156
 IMAGE_HEIGHT = IMAGE_WIDTH
 
 color_map = [
@@ -17,7 +18,9 @@ color_map = [
     "B8860B",
     "000000",
     "0000FF",
-    "A9A9A9",    
+    "A9A9A9",
+    "800000",
+    "8B0000",
 ]
 
 
@@ -60,6 +63,7 @@ def to_array(path):
             print(f"0", end=",")
         else:
             print(f"{closest_colour(rgb)}", end=",")
+        # print(f"CRGB{rgb}", end=",")
 
     print("}", end=",")
 
