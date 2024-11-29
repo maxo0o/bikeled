@@ -286,32 +286,45 @@ void ledMagic() {
   FastLED.show();
 }
 
+int tick = 0;
+
+CRGB colours[7] = {
+    CRGB::HotPink,
+    CRGB::Purple,
+    CRGB::Blue,
+    CRGB::Green,
+    CRGB::Yellow,
+    CRGB::Orange,
+    CRGB::Red, 
+};
+
 void loop() {
     checkHES();
 
-    for (int led = 0; led < NUM_LEDS; led++) {
+    for (int l = 0; l < NUM_LEDS; l++) {
+        int led = l;
 
         if (led < 5) {
-            leds[led] = CRGB::HotPink;
-            leds_b[led] = CRGB::HotPink;
+            leds[led] = colours[(0 + tick) % 7];
+            leds_b[led]  = colours[(0 + tick) % 7];
         } else if (led < 10) {
-            leds[led] = CRGB::Purple;
-            leds_b[led] = CRGB::Purple;
+            leds[led] = colours[(1 + tick) % 7];
+            leds_b[led] = colours[(1 + tick) % 7];
         }  else if (led < 15) {
-            leds[led] = CRGB::Blue;
-            leds_b[led] = CRGB::Blue;
+            leds[led] = colours[(2 + tick) % 7];
+            leds_b[led] = colours[(2 + tick) % 7];
         } else if (led < 20) {
-            leds[led] = CRGB::Green;
-            leds_b[led] = CRGB::Green;
+            leds[led] = colours[(3 + tick) % 7];
+            leds_b[led] = colours[(3 + tick) % 7];
         } else if (led < 25) {
-            leds[led] = CRGB::Goldenrod;
-            leds_b[led] = CRGB::Goldenrod;
+            leds[led] = colours[(4 + tick) % 7];
+            leds_b[led] = colours[(4 + tick) % 7];
         } else if (led < 30) {
-            leds[led] = CRGB::Orange;
-            leds_b[led] = CRGB::Orange;
+            leds[led] = colours[(5 + tick) % 7];
+            leds_b[led] = colours[(5 + tick) % 7];
         } else if (led < 35) {
-            leds[led] = CRGB::Red;
-            leds_b[led] = CRGB::Red;
+            leds[led] = colours[(6 + tick) % 7];
+            leds_b[led] = colours[(6 + tick) % 7];
         } 
     } 
 
@@ -319,14 +332,12 @@ void loop() {
 
     // ledMagic();
 
-    // unsigned long current_art_time = millis();
-    // if (current_art_time - art_timer > 200) {
-    //     frame_counter++;
-    //     if (frame_counter == 6) frame_counter = 1;
-    //     clear_grid(0);
-    //     dog(frame_counter);
-    //     art_timer = current_art_time;
-    // }
+    unsigned long current_art_time = millis();
+    if (current_art_time - art_timer > 100) {
+        tick++;
+        if (tick == 7) tick = 0;
+        art_timer = current_art_time;
+    }
 
     // grid_debug();
 }
